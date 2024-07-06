@@ -8,7 +8,7 @@ Projects on this repo:
 
 1. [x] Hello World - Rust basics. (Like `node index.js`)
 2. [x] Hello Cargo - Rust basics + Package Manager + Build Tool. (Like `npm run dev`)
-3. [ ] Guessing Game - Random number generate, then take user input until random number is guessed.
+3. [x] Guessing Game - Random number generate, then take user input until random number is guessed.
 4. [ ] Salary - Console app that estimates salary based on hourly, daily, monthly, and yearly rates.
 5. [ ] Tried Passwords CLI - Recreation of my [Go implementation](https://github.com/Blankeos/tried-passwords-cli).
 6. [ ] HTTP Server - Simple HTTP server to understand networking and concurrency in Rust.
@@ -28,6 +28,8 @@ Projects on this repo:
 - Cargo is awesome because you can `cargo new` to create a project.
 - `cargo build` to build the project or `cargo run` to build and run in one command. Or `cargo build --release` for a release build in `target/release` instead of `target/debug`.
 - `cargo check` to see if it compiles or not.
+- `cargo update` updates the dependencies (like `pnpm update -i` I think).
+- `cargo doc --open` opens the docs of all your dependencies in the browser.
 
 ### Resources
 
