@@ -1,58 +1,54 @@
-// 📝 Lesson: Import ::{self, Write}; is added so we can use flush().
-// But actually, this is a 1-line shortcut for:
-//  - std::io (as usual).
-//  - std::io::Write.
-// Because std::io::{self} means import `io`. Then `, Write}` after that is just std::io::Write.
-// Because if you do `std::io::Write` only, you don't import `io` lol.
-
-use rand::Rng; // Rng trait defines methods that random number generators implement. Must be in scope for us to use gen_range.
 use std::cmp::Ordering;
-use std::io::{self, Write};
+use std::io;
+use std::io::Write;
+
+use rand::Rng;
 
 fn main() {
-    println!("I have generated a random number. Try to guess it!");
+    println!("🛸 Welcome to Carlo's Guessing Game!");
 
-    let secret_number = rand::thread_rng().gen_range(1..=100);
-
-    // println!("The secret number is {secret_number}");
+    let secret_number = rand::thread_rng().gen_range(0..=100);
 
     let mut win: bool = false;
+    let mut tries: i32 = 0;
 
     while !win {
+        tries += 1;
         println!("--------------------------------------");
-        let mut guess = String::new(); // 📝 Lesson: `::new()` is an "associated function" - implemented on the type.
-
-        print!("Please input your guess: ");
-        // Makes sure to display `print!` before io:stdin
-        // 📝 Low-level lesson:
-        // - With stdout, outputs are actually sent and stored to the buffer first,
-        // then flushed (sent to the terminal) either when "buffer is full" or "\n is encountered".
-        // - When you `print!`, there is no '\n' at the end. So it just sits in the buffer.
+        print!("Please input your guess here: ");
         io::stdout().flush().expect("Failed to flush stdout.");
 
-        io::stdin()
-            .read_line(&mut guess)
-            .expect("Failed to read line.");
+        let mut guess = String::new();
 
-        // 📝 'Match' is like an if else with a return that you can use in an assignment.
-        let parsed_guess: u32 = match guess.trim().parse() {
-            Ok(num) => num,
+        match io::stdin().read_line(&mut guess) {
+            Ok(_guess) => _guess,
             Err(_) => {
-                println!("You need to type a number. Found: {guess}");
+                println!("Failed to read the line.");
+                return ();
+            }
+        };
+
+        let parsed_guess: u32 = match guess.trim().parse() {
+            Ok(num) => {
+                println!("You guessed '{}'!", guess.trim());
+                num // Return.
+            }
+            Err(_) => {
+                println!(
+                    "You guessed '{}' but it's invalid. Please input a number only.",
+                    guess.trim()
+                );
                 continue;
             }
         };
 
-        println!("You have guessed {parsed_guess}");
-
-        // 📝 Match is used like a switch case here based on what `cmp` returns.
-        match parsed_guess.cmp(&secret_number) {
-            Ordering::Less => println!("Higher!"),
+        match secret_number.cmp(&parsed_guess) {
             Ordering::Equal => {
                 win = true;
-                println!("You win!")
+                println!("\n🥳You won! After {tries} tries.");
             }
-            Ordering::Greater => println!("Too big!"),
+            Ordering::Greater => println!("🔼 Guess higher!"),
+            Ordering::Less => println!("🔽 Guess lower!"),
         }
     }
 }
