@@ -27,6 +27,7 @@ Projects on this repo:
   - Coming from Bun, that's essentially: `bun`, `bun build`, and `bun install`/`bun run`
 - Cargo is awesome because you can `cargo new` to create a project.
 - `cargo build` to build the project or `cargo run` to build and run in one command. Or `cargo build --release` for a release build in `target/release` instead of `target/debug`.
+- `cargo run -q` to run the program without the noise (doesn't remove the WARN though).
 - `cargo check` to see if it compiles or not.
 - `cargo update` updates the dependencies (like `pnpm update -i` I think).
 - `cargo doc --open` opens the docs of all your dependencies in the browser.
