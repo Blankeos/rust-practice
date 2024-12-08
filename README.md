@@ -17,7 +17,7 @@ Projects on this repo:
 9. [ ] Tic Tac Toe - A simple Tic Tac Toe game with persistence.
 10. [ ] WebSocket Chat - A console-based chat application using WebSockets to understand network communication on browser.
 11. [ ] Static Site Generator - Converts markdown to HTML.
-12. [ ] Tauri - Electron-like webview for Rust.\*\*\*\*
+12. [ ] Tauri - Electron-like webview for Rust.
 13. [ ] Todo GUI Application - A simple GUI application to manage tasks.
 
 ### Notes
@@ -25,12 +25,20 @@ Projects on this repo:
 - Install Rust using [rustup](https://doc.rust-lang.org/book/ch01-01-installation.html#installing-rustup-on-linux-or-macos) - The installation and updating process is as convenient as Bun.
 - CLI's you need to know: `rustup` is for installing and updating Rust. While `rustc` is the compiler. `cargo` is the package manager + build tool.
   - Coming from Bun, that's essentially: `bun`, `bun build`, and `bun install`/`bun run`
-- Cargo is awesome because you can `cargo new` to create a project.
+- `cargo new` to create a project with a new folder.
+- `cargo init` to create a project inside current folder.
 - `cargo build` to build the project or `cargo run` to build and run in one command. Or `cargo build --release` for a release build in `target/release` instead of `target/debug`.
 - `cargo run -q` to run the program without the noise (doesn't remove the WARN though).
 - `cargo check` to see if it compiles or not.
 - `cargo update` updates the dependencies (like `pnpm update -i` I think).
 - `cargo doc --open` opens the docs of all your dependencies in the browser.
+- `cargo add <dep>` add a cargo dep to the project. Or you can also add a snippet into `[dependencies]` of `Cargo.toml` yourself.
+- `cargo install --path .` like bun install without args. Installs from Cargo.toml.
+
+Faster Rust feedback loop tips:
+
+- Use `[profile.dev] opt-level = 1` in `Cargo.toml` for faster compile times before making release builds.
+- Primary feedback loop instead of compile: `cargo clippy --all-targets`. Can do this on save.
 
 ### Resources
 
