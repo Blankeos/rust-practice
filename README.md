@@ -52,6 +52,20 @@ Terminologies
 Faster Rust feedback loop tips:
 
 - Use `[profile.dev] opt-level = 1` in `Cargo.toml` for faster compile times before making release builds.
+- More:
+
+```toml
+# I got this from Bevy's docs.
+
+# Enable a small amount of optimization in the dev profile.
+[profile.dev]
+opt-level = 1
+
+# Enable a large amount of optimization in the dev profile for dependencies.
+[profile.dev.package.'*']
+opt-level = 3
+```
+
 - Primary feedback loop instead of compile: `cargo clippy --all-targets`. Can do this on save.
 
 ### Resources
