@@ -1,11 +1,14 @@
 use bevy::{
     input::keyboard::KeyboardInput, prelude::*, render::view::ExtractedWindows,
-    window::PrimaryWindow,
+    time::common_conditions::on_real_timer, window::PrimaryWindow,
 };
-use std::slice::Windows;
+use rand::random;
+use std::{slice::Windows, time::Duration};
 
 const ARENA_WIDTH: u32 = 10;
 const ARENA_HEIGHT: u32 = 10;
+const SNAKE_HEAD_COLOR: Color = Color::srgb(0.7, 0.7, 0.7);
+const FOOD_COLOR: Color = Color::srgb(1.0, 0.0, 1.0);
 
 #[derive(Resource)]
 struct GameTick(Timer);
@@ -64,13 +67,10 @@ struct SnakeHead {
     direction: Direction,
 }
 
-const SNAKE_HEAD_COLOR: Color = Color::srgb(0.7, 0.7, 0.7);
-
 fn spawn_snake(mut commands: Commands) {
     commands
         .spawn((Sprite {
             color: SNAKE_HEAD_COLOR,
-            custom_size: Some(Vec2::new(50., 50.)), // 🤩 idk how I got this :D
             ..default()
         },))
         .insert(SnakeHead {
@@ -84,16 +84,15 @@ fn size_scaling(
     window_query: Query<&Window, With<PrimaryWindow>>,
     mut q: Query<(&Size, &mut Transform)>,
 ) {
-    // let window = window_query.single();
+    let window = window_query.single();
 
-    // for (sprite_size, mut transform) in q.iter_mut() {
-    //     transform.scale = Vec3::new(
-    //         sprite_size.width / ARENA_WIDTH as f32 * window.width() as f32,
-    //         sprite_size.height / ARENA_HEIGHT as f32 * window.height() as f32,
-    //         1.0,
-    //     );
-    //     println!("{:#?}", transform.scale)
-    // }
+    for (sprite_size, mut transform) in q.iter_mut() {
+        transform.scale = Vec3::new(
+            sprite_size.width / ARENA_WIDTH as f32 * window.width() as f32,
+            sprite_size.height / ARENA_HEIGHT as f32 * window.height() as f32,
+            1.0,
+        );
+    }
 }
 
 fn position_translation(
@@ -139,6 +138,25 @@ fn snake_movement(
     }
 }
 
+#[derive(Component)]
+struct Food;
+
+fn food_spawner(mut commands: Commands) {
+    commands
+        .spawn(Sprite {
+            color: FOOD_COLOR,
+            ..default()
+        })
+        .insert(Food)
+        .insert(Position {
+            x: (random::<f32>() * ARENA_WIDTH as f32) as i32,
+            y: (random::<f32>() * ARENA_HEIGHT as f32) as i32,
+        })
+        .insert(Size::square(0.8));
+}
+
+use bevy::time::common_conditions::on_timer;
+
 fn main() {
     App::new()
         .insert_resource(GameTick(Timer::from_seconds(0.08, TimerMode::Repeating)))
@@ -150,6 +168,11 @@ fn main() {
             }),
             ..default()
         }))
+        // .add_systems(Startup, SystemSet)
+        .add_systems(
+            FixedUpdate,
+            food_spawner.run_if(on_timer(Duration::from_millis(800))),
+        )
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, spawn_snake)
         .add_systems(FixedUpdate, (game_tick_ticker, snake_movement))
