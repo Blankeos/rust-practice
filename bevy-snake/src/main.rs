@@ -9,6 +9,7 @@ const ARENA_WIDTH: u32 = 10;
 const ARENA_HEIGHT: u32 = 10;
 const SNAKE_HEAD_COLOR: Color = Color::srgb(0.7, 0.7, 0.7);
 const FOOD_COLOR: Color = Color::srgb(1.0, 0.0, 1.0);
+const SNAKE_SEGMENT_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
 
 #[derive(Resource)]
 struct GameTick(Timer);
@@ -67,17 +68,39 @@ struct SnakeHead {
     direction: Direction,
 }
 
-fn spawn_snake(mut commands: Commands) {
+#[derive(Component)]
+struct SnakeSegment;
+
+#[derive(Default, Resource)]
+struct SnakeSegments(Vec<Entity>);
+
+fn spawn_snake(mut commands: Commands, mut segments: ResMut<SnakeSegments>) {
+    *segments = SnakeSegments(vec![
+        commands
+            .spawn((Sprite {
+                color: SNAKE_HEAD_COLOR,
+                ..default()
+            },))
+            .insert(SnakeHead {
+                direction: Direction::Up,
+            })
+            .insert(Position { x: 3, y: 3 })
+            .insert(Size::square(0.8))
+            .id(),
+        spawn_segment(commands, Position { x: 3, y: 2 }),
+    ])
+}
+
+fn spawn_segment(mut commands: Commands, position: Position) -> Entity {
     commands
-        .spawn((Sprite {
-            color: SNAKE_HEAD_COLOR,
+        .spawn(Sprite {
+            color: SNAKE_SEGMENT_COLOR,
             ..default()
-        },))
-        .insert(SnakeHead {
-            direction: Direction::Up,
         })
-        .insert(Position { x: 3, y: 3 })
-        .insert(Size::square(0.8));
+        .insert(SnakeSegment)
+        .insert(position)
+        .insert(Size::square(0.65))
+        .id()
 }
 
 fn size_scaling(
@@ -116,24 +139,72 @@ fn position_translation(
 }
 
 fn snake_movement(
-    game_tick: Res<GameTick>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut head_positions: Query<&mut Position, With<SnakeHead>>,
+    game_ticker: Res<GameTick>,
+    snake_segments: ResMut<SnakeSegments>,
+    mut heads: Query<(Entity, &SnakeHead)>,
+    mut positions: Query<&mut Position>,
 ) {
-    if game_tick.0.just_finished() {
-        for mut pos in head_positions.iter_mut() {
-            if keyboard_input.pressed(KeyCode::ArrowUp) {
-                pos.y += 1;
+    if !game_ticker.0.just_finished() {
+        return;
+    }
+
+    if let Some((head_entity, head)) = heads.iter_mut().next() {
+        // First, collect all current positions
+        let segment_positions: Vec<Position> = snake_segments
+            .0 // or .segments depending on your field name
+            .iter()
+            .map(|e| *positions.get(*e).unwrap())
+            .collect();
+
+        // Update head position
+        let mut head_pos = positions.get_mut(head_entity).unwrap();
+        match &head.direction {
+            Direction::Left => {
+                head_pos.x -= 1;
             }
-            if keyboard_input.pressed(KeyCode::ArrowDown) {
-                pos.y -= 1;
+            Direction::Right => {
+                head_pos.x += 1;
             }
-            if keyboard_input.pressed(KeyCode::ArrowRight) {
-                pos.x += 1;
+            Direction::Up => {
+                head_pos.y += 1;
             }
-            if keyboard_input.pressed(KeyCode::ArrowLeft) {
-                pos.x -= 1;
+            Direction::Down => {
+                head_pos.y -= 1;
             }
+        };
+
+        // Update body segments
+        for (segment, pos) in snake_segments
+            .0
+            .iter()
+            .skip(1)
+            .zip(segment_positions.iter())
+        {
+            if let Ok(mut segment_pos) = positions.get_mut(*segment) {
+                *segment_pos = *pos;
+            }
+        }
+    }
+}
+
+fn snake_movement_input(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut heads: Query<&mut SnakeHead>,
+) {
+    if let Some(mut head) = heads.iter_mut().next() {
+        let dir: Direction = if keyboard_input.pressed(KeyCode::ArrowLeft) {
+            Direction::Left
+        } else if keyboard_input.pressed(KeyCode::ArrowDown) {
+            Direction::Down
+        } else if keyboard_input.pressed(KeyCode::ArrowUp) {
+            Direction::Up
+        } else if keyboard_input.pressed(KeyCode::ArrowRight) {
+            Direction::Right
+        } else {
+            head.direction
+        };
+        if dir != head.direction.opposite() {
+            head.direction = dir;
         }
     }
 }
@@ -160,6 +231,7 @@ use bevy::time::common_conditions::on_timer;
 fn main() {
     App::new()
         .insert_resource(GameTick(Timer::from_seconds(0.08, TimerMode::Repeating)))
+        .insert_resource(SnakeSegments::default())
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Snake!".to_string(),
@@ -168,13 +240,13 @@ fn main() {
             }),
             ..default()
         }))
-        // .add_systems(Startup, SystemSet)
         .add_systems(
             FixedUpdate,
             food_spawner.run_if(on_timer(Duration::from_millis(800))),
         )
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, spawn_snake)
+        .add_systems(Update, snake_movement_input)
         .add_systems(FixedUpdate, (game_tick_ticker, snake_movement))
         .add_systems(PostUpdate, (position_translation, size_scaling))
         .run();
