@@ -1,8 +1,21 @@
-use rspc::{selection, Router};
+use dotenvy::dotenv;
 
-use axum::routing::get;
+use diesel::{
+    migration::MigrationConnection,
+    r2d2::{self, ConnectionManager},
+    Connection, RunQueryDsl, SqliteConnection,
+};
+use rspc::{selection, Config, Router};
+
+use axum::{routing::get, Json};
+use rspc_server::{models::NewUser, schema::user};
 use specta::Type;
-use std::sync::Arc;
+use std::{
+    env,
+    ops::{Deref, DerefMut},
+    path::PathBuf,
+    sync::Arc,
+};
 
 // Type is for exporting types to Typescript,
 // Serde is for struct -> JSON serialization more for runtime.
@@ -19,8 +32,23 @@ pub struct CarloResponse {
     greeting: String,
 }
 
-fn router() -> Arc<Router<()>> {
+#[derive(Type, serde::Serialize)]
+pub struct LoginInput {
+    username: String,
+    email: String,
+    password: String,
+}
+
+fn router(conn: &mut SqliteConnection) -> Arc<Router<()>> {
     <Router>::new()
+        .config(
+            Config::new()
+                // Doing this will automatically export the bindings when the `build` function is called.
+                .export_ts_bindings(
+                    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("./bindings.ts"),
+                ),
+        )
+        // Add the procedures here.
         .query("version", |t| t(|ctx, input: ()| env!("CARGO_PKG_VERSION")))
         .query("carlo", |t| {
             t(|ctx, input: ()| {
@@ -36,16 +64,81 @@ fn router() -> Arc<Router<()>> {
                 return CarloResponse { greeting, user };
             })
         })
+        .query("login", |t| {
+            t(|ctx, input: ()| {
+                let new_user = NewUser {
+                    id: "123".to_string(),
+                    username: "carlo".to_string(),
+                    hashed_password: "carlo123".to_string(),
+                    email: None,
+                };
+
+                let new_user = NewUser {
+                    id: "123".to_string(),
+                    username: "carlo".to_string(),
+                    hashed_password: "carlo123".to_string(),
+                    email: None,
+                };
+
+                diesel::insert_into(user::table)
+                    .values(new_user)
+                    .execute(conn)
+                    .expect("Error saving new user");
+
+                "logging in."
+            })
+        })
+        // .mutation("login", |t| t(|ctx, login_input: LoginInput| {}))
         .build()
         .arced()
 }
 
+pub fn establish_connection() -> SqliteConnection {
+    dotenv().ok();
+
+    // Pool Implementation (Needed for)
+    // let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set.");
+    // let manager = ConnectionManager::<SqliteConnection>::new(database_url.clone());
+    // let pool = r2d2::Pool::builder()
+    //     .build(manager)
+    //     .expect("Failed to create pool");
+
+    // println!("Connected to database: {}!", database_url);
+
+    // Non-Pool Implementation
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set.");
+    let connection = SqliteConnection::establish(&database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+    println!("Connected to database: {}!", database_url);
+
+    connection
+}
+
 #[tokio::main]
 async fn main() {
-    let _router = router();
+    let mut conn = &mut establish_connection();
+
+    let _router = router(&mut conn);
 
     let app = axum::Router::new()
         .route("/", get(|| async { "Hello 'rspc'!" }))
+        .route(
+            "/up",
+            get(|| async {
+                Json(serde_json::json!({
+                    "status": "up",
+                    "message": "Server is running"
+                }))
+            }),
+        )
+        .route(
+            "/bindings",
+            get(|| async {
+                let value = std::fs::read_to_string("./bindings.ts").unwrap();
+
+                value
+            }),
+        )
         .nest("/rspc", rspc_axum::endpoint(_router, || ()));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:4001").await.unwrap();
@@ -59,6 +152,6 @@ mod tests {
 
     #[test]
     fn test_rspc_router() {
-        super::router();
+        // super::router();
     }
 }

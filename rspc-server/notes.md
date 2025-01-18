@@ -4,6 +4,7 @@ Notes:
 
    ```sh
    cargo install diesel_cli --no-default-features --features sqlite
+   diesel setup
 
    # Also added to Cargo.toml:
    diesel = { version: "2.2.0", features = ['chrono', 'sqlite']}
