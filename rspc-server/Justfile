@@ -1,0 +1,24 @@
+set dotenv-load
+
+default:
+    just --list
+
+migrate-create *name:
+    diesel migration generate {{name}}
+
+migrate-up:
+    diesel migration run --database-url $DATABASE_URL
+
+migrate-down:
+    diesel migration revert
+
+# Simple OS-specific command (Just a sample)
+list:
+    #!/usr/bin/env sh
+    if [ "{{os()}}" = "windows" ]; then
+        echo "Listing on Windows"
+        dir
+    else
+        echo "Listing on Unix"
+        ls -l
+    fi

@@ -25,18 +25,15 @@ fn router() -> Arc<Router<()>> {
         .query("carlo", |t| {
             t(|ctx, input: ()| {
                 let name = "Carlo";
-                let greeting = format!("Hello, {}!", name);
+                let greeting = format!("Hello there, {}!!!!", name);
 
                 let user = User {
                     name: name.to_string(),
-                    age: 23,
+                    age: 90,
                     alive: true,
                 };
 
-                return CarloResponse {
-                    greeting: greeting,
-                    user: user,
-                };
+                return CarloResponse { greeting, user };
             })
         })
         .build()
@@ -47,13 +44,10 @@ fn router() -> Arc<Router<()>> {
 async fn main() {
     let _router = router();
 
-    // TODO: Mount an integration to expose your API
     let app = axum::Router::new()
         .route("/", get(|| async { "Hello 'rspc'!" }))
         .nest("/rspc", rspc_axum::endpoint(_router, || ()));
-    // .layer(cors)
 
-    // run our app with hyper, listening globally on port 4001
     let listener = tokio::net::TcpListener::bind("0.0.0.0:4001").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
