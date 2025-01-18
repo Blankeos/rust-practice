@@ -73,7 +73,8 @@ opt-level = 3
 Libs that are kinda essential to know
 
 - tokio - async
-- serde - json
+- serde - for serializing/deserializing. It's very generic so treat it like a library.
+- serde_json - specifically for JSON serialization/deserialization (not confused anymore ?)
 - clap - for making CLIs
 - bevy - making games
 - wgpu - for programming the GPU (used by Firefox's web gpu)
