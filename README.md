@@ -40,7 +40,7 @@ Projects on this repo:
 - `cargo add <dep>` add a cargo dep to the project. Or you can also add a snippet into `[dependencies]` of `Cargo.toml` yourself.
 - `cargo install --path .` like bun install without args. Installs from Cargo.toml.
 
-Terminologies
+#### Terminologies
 
 - Crate - module/package. Must have at least 1 crate. I think it's just either a `.rs` file or a "project".
 - Binary crate - inside `src/bin/*.rs` - can have 0 or multiple.
@@ -49,7 +49,7 @@ Terminologies
 - `struct` and `impl` - Basically OOP in Rust, but better. Follows the same privacy rules as `mod`
 - `enum` - you already know. Follows the same privacy rules as `mod` as well.
 
-Faster Rust feedback loop tips:
+#### Faster Rust feedback loop tips:
 
 - Use `[profile.dev] opt-level = 1` in `Cargo.toml` for faster compile times before making release builds.
 - More:
@@ -67,6 +67,24 @@ opt-level = 3
 ```
 
 - Primary feedback loop instead of compile: `cargo clippy --all-targets`. Can do this on save.
+
+### Libraries
+
+Libs that are kinda essential to know
+
+- tokio - async
+- serde - json
+- clap - for making CLIs
+- bevy - making games
+- wgpu - for programming the GPU (used by Firefox's web gpu)
+- axum - for web apis and web framework stuff
+- embassy - embedded systems
+- rayon - for parallelism (contrasts with tokio for async)
+- nom - for parsing, so you can avoid regex.
+- cargo lambda - make rust bins for aws lambda easy
+- wasm-bindgen - Rust program that can run in web (wasm). (I used this, very nice). + wasm-pack
+- napi-rs - node.js add-ons in rust.
+- polars - df library in rust (doesn't work in wasm). I use rowboat.
 
 ### Resources
 
