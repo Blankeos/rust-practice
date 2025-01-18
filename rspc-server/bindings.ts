@@ -3,12 +3,14 @@
 export type Procedures = {
     queries: 
         { key: "carlo", input: never, result: CarloResponse } | 
-        { key: "login", input: never, result: string } | 
         { key: "version", input: never, result: string },
-    mutations: never,
+    mutations: 
+        { key: "register", input: LoginInput, result: UserResponse },
     subscriptions: never
 };
 
-export type User = { name: string; age: number; alive: boolean }
+export type CarloResponse = { user: UserResponse; greeting: string }
 
-export type CarloResponse = { user: User; greeting: string }
+export type UserResponse = { name: string; age: number; alive: boolean }
+
+export type LoginInput = { username: string; email: string | null; password: string }
