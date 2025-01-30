@@ -1,21 +1,9 @@
 use dotenvy::dotenv;
 
-use diesel::{
-    migration::MigrationConnection,
-    r2d2::{self, ConnectionManager},
-    Connection, RunQueryDsl, SqliteConnection,
-};
-use rspc::{selection, Config, Router};
-
 use axum::{routing::get, Json};
-use rspc_server::{models::NewUser, schema::user};
+use rspc::{Config, Router};
 use specta::Type;
-use std::{
-    env,
-    ops::{Deref, DerefMut},
-    path::PathBuf,
-    sync::Arc,
-};
+use std::{env, path::PathBuf, sync::Arc};
 
 // Type is for exporting types to Typescript,
 // Serde is for struct -> JSON serialization more for runtime.
@@ -72,18 +60,6 @@ fn router(conn: &mut SqliteConnection) -> Arc<Router<()>> {
                     hashed_password: "carlo123".to_string(),
                     email: None,
                 };
-
-                let new_user = NewUser {
-                    id: "123".to_string(),
-                    username: "carlo".to_string(),
-                    hashed_password: "carlo123".to_string(),
-                    email: None,
-                };
-
-                diesel::insert_into(user::table)
-                    .values(new_user)
-                    .execute(conn)
-                    .expect("Error saving new user");
 
                 "logging in."
             })

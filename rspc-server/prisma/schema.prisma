@@ -1,0 +1,29 @@
+// Idk if I need still.
+generator client {
+  provider = "cargo prisma" // Corresponds to the cargo alias.
+  output = "../src/prisma.rs" // relative to the schema.
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id       String    @id
+  username String
+  passwordHash String
+
+  createdTimestamp DateTime @default(now())
+  updatedTimestamp DateTime @updatedAt @default(now())
+
+  sessions Session[]
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
+}

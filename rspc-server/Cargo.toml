@@ -10,9 +10,11 @@ rspc-axum = "0.1.1"
 serde = "1.0.210"
 specta = "1.0.5"
 tokio = { version = "1.40.0", features = ["full"] }
-diesel = { version = "2.2.0", features = ["sqlite", "chrono", "r2d2"] }
 dotenvy = "0.15"
 serde_json = "1.0.135"
+prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust", tag = "0.6.11" }
+prisma-client-rust-cli = { git = "https://github.com/Brendonovich/prisma-client-rust", tag = "0.6.11" }
+
 
 # [profile.dev]
 # opt-level = 1
