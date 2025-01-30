@@ -1,0 +1,9 @@
+[package]
+name = "gtk-ui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gtk = { version = "0.9.5", package = "gtk4", features = ["v4_12"] }
+relm4 = "0.9.1"
+relm4-components = "0.9.1"
