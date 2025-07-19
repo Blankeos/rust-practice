@@ -22,3 +22,13 @@ list:
         echo "Listing on Unix"
         ls -l
     fi
+
+[windows]
+listc:
+    echo 'I am windows'
+    dir
+
+[macos]
+listc:
+    echo 'I am mac'
+    ls -l
