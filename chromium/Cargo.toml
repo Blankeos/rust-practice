@@ -1,0 +1,7 @@
+[package]
+name = "rust-browser-mvp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+civet = "0.4.0"
