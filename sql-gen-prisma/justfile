@@ -1,0 +1,23 @@
+# set positional-arguments
+set dotenv-load
+
+default:
+    just --list
+
+db-studio:
+    bunx prisma studio
+
+db-migrate:
+    bunx prisma migrate deploy
+
+db-migrate-dev:
+    bunx prisma migrate dev --schema ./prisma
+
+db-generate:
+    bunx prisma generate --schema ./prisma
+
+db-start:
+    docker compose -f docker-compose.dev.yml up -d
+
+sql-gen:
+    sql-gen --db-url $DATABASE_URL --output src/models/

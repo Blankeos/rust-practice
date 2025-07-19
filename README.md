@@ -38,7 +38,10 @@ Projects on this repo:
 - `cargo update` updates the dependencies (like `pnpm update -i` I think).
 - `cargo doc --open` opens the docs of all your dependencies in the browser.
 - `cargo add <dep>` add a cargo dep to the project. Or you can also add a snippet into `[dependencies]` of `Cargo.toml` yourself.
-- `cargo install --path .` like bun install without args. Installs from Cargo.toml.
+- `cargo install --path .` Installs the binary to your path (It's not like bun install)
+- If you want something that "installs deps" like bun install, just run any: `cargo check`, `cargo build`, `cargo run`, or `cargo clippy --all-targets`
+- `cargo install --list` to see what you installed in your path.
+- `cargo clippy --all-targets` - should be your primary feedback loop, can even do this on save.
 
 #### Terminologies
 

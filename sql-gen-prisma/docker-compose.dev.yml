@@ -1,0 +1,21 @@
+version: "3.8"
+
+name: sqlgenrs # Container name
+services:
+  db:
+    container_name: sqlgenrs_db # Subcontainer name
+    image: postgres:15
+    environment:
+      POSTGRES_DB: sqlgenrs_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    # The database URI for connecting to this service from another service would be:
+    # postgresql://postgres:password123@sqlgenrs_db:5432/sqlgenrs_db
+    # From outside Docker (e.g., your local machine), it would be:
+    # postgresql://postgres:password123@localhost:5432/sqlgenrs_db
+volumes:
+  db_data:
