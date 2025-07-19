@@ -1,0 +1,16 @@
+# Rust
+target/
+**/*.prof
+**/*.profdata
+**/*.profraw
+
+# IDEs and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Other common temporary files
+*~
+*.bak
