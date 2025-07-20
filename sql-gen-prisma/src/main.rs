@@ -57,6 +57,22 @@ async fn query(pool: &PgPool) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+// async fn conditional_dynamic_query(
+//     pool: &PgPool,
+//     name_filter: Option<String>,
+// ) -> Result<(), Box<dyn Error>> {
+//     let mut query: sqlx::QueryBuilder<'_, sqlx::Postgres> =
+//         sqlx::QueryBuilder::new("SELECT id, username from `User`");
+
+//     if let Some(name_filter) = name_filter {
+//         query.push(" WHERE ");
+//     }
+
+//     let users = query.build_query_as::<User>().fetch_all(pool).await?;
+
+//     Ok(())
+// }
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     dotenv().ok();
