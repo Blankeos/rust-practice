@@ -1,0 +1,21 @@
+# set positional-arguments
+set dotenv-load
+
+default:
+    just --list
+
+# Generates entities for Rust interfacing.
+db-generate:
+    sea-orm-cli generate entity --database-url $DATABASE_URL -o entity/src/entities
+
+db-migrate-generate *args:
+    @sea-orm-cli migrate generate --database-url $DATABASE_URL {{args}}
+
+db-migrate-up:
+    sea-orm-cli migrate up
+
+db-migrate-status:
+    sea-orm-cli migrate status
+
+db-migrate-down:
+    sea-orm-cli migrate down
