@@ -1,9 +1,12 @@
 use dotenvy::dotenv;
 
 use axum::{routing::get, Json};
-use rspc::{Config, Router};
+use rspc::Config;
+use sea_orm::ConnectionTrait;
+use sea_orm::DatabaseConnection;
+use sea_orm::EntityTrait;
 use specta::Type;
-use std::{env, path::PathBuf, sync::Arc};
+use std::{env, error::Error, path::PathBuf, sync::Arc};
 
 // Type is for exporting types to Typescript,
 // Serde is for struct -> JSON serialization more for runtime.
@@ -12,6 +15,14 @@ pub struct User {
     pub name: String,
     pub age: u8,
     pub alive: bool,
+}
+
+#[derive(Type, serde::Serialize)]
+pub struct NewUser {
+    pub id: String,
+    pub username: String,
+    pub hashed_password: String,
+    pub email: Option<String>,
 }
 
 #[derive(Type, serde::Serialize)]
@@ -27,8 +38,8 @@ pub struct LoginInput {
     password: String,
 }
 
-fn router(conn: &mut SqliteConnection) -> Arc<Router<()>> {
-    <Router>::new()
+fn router() -> Arc<rspc::Router<MyCtx>> {
+    rspc::Router::<MyCtx>::new()
         .config(
             Config::new()
                 // Doing this will automatically export the bindings when the `build` function is called.
@@ -38,6 +49,40 @@ fn router(conn: &mut SqliteConnection) -> Arc<Router<()>> {
         )
         // Add the procedures here.
         .query("version", |t| t(|ctx, input: ()| env!("CARGO_PKG_VERSION")))
+        .query("sum", |t| {
+            t(async |ctx, input: ()| {
+                let res = ctx
+                    .db
+                    .query_one(sea_orm::Statement::from_string(
+                        sea_orm::DatabaseBackend::Sqlite,
+                        "SELECT 1 + 1 as sum",
+                    ))
+                    .await
+                    .unwrap();
+
+                let sum = res
+                    .expect("Expected a result from the database query")
+                    .try_get::<i32>("", "sum")
+                    .unwrap();
+
+                Ok(sum)
+            })
+        })
+        .query("get_all_users", |t| {
+            t(async |ctx, _: ()| {
+                let users = entity::user::Entity::find()
+                    .all(&*ctx.db)
+                    .await
+                    .map_err(|e| {
+                        rspc::Error::new(
+                            rspc::ErrorCode::InternalServerError,
+                            format!("Failed to fetch users: {}", e),
+                        )
+                    })?;
+
+                Ok(users)
+            })
+        })
         .query("carlo", |t| {
             t(|ctx, input: ()| {
                 let name = "Carlo";
@@ -69,32 +114,21 @@ fn router(conn: &mut SqliteConnection) -> Arc<Router<()>> {
         .arced()
 }
 
-pub fn establish_connection() -> SqliteConnection {
-    dotenv().ok();
-
-    // Pool Implementation (Needed for)
-    // let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set.");
-    // let manager = ConnectionManager::<SqliteConnection>::new(database_url.clone());
-    // let pool = r2d2::Pool::builder()
-    //     .build(manager)
-    //     .expect("Failed to create pool");
-
-    // println!("Connected to database: {}!", database_url);
-
-    // Non-Pool Implementation
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set.");
-    let connection = SqliteConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
-    println!("Connected to database: {}!", database_url);
-
-    connection
+#[derive(Clone)] // Clone is generally required
+struct MyCtx {
+    // UNLEARNED CONCEPT: Lifetimes. &'static for example? I guess Arc is one of those lifetimes?
+    db: Arc<DatabaseConnection>,
 }
 
 #[tokio::main]
-async fn main() {
-    let mut conn = &mut establish_connection();
+async fn main() -> Result<(), Box<dyn Error>> {
+    dotenv().ok();
 
-    let _router = router(&mut conn);
+    let db_url = std::env::var("DATABASE_URL").unwrap();
+    let db: DatabaseConnection = sea_orm::Database::connect(&db_url).await?;
+    let arc_db = Arc::new(db);
+
+    let _router = router();
 
     let app = axum::Router::new()
         .route("/", get(|| async { "Hello 'rspc'!" }))
@@ -111,14 +145,18 @@ async fn main() {
             "/bindings",
             get(|| async {
                 let value = std::fs::read_to_string("./bindings.ts").unwrap();
-
                 value
             }),
         )
-        .nest("/rspc", rspc_axum::endpoint(_router, || ()));
+        .nest(
+            "/rspc",
+            rspc_axum::endpoint(_router, || (MyCtx { db: arc_db })),
+        );
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:4001").await.unwrap();
     axum::serve(listener, app).await.unwrap();
+
+    Ok(())
 }
 
 #[cfg(test)]

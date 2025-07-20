@@ -3,12 +3,16 @@
 export type Procedures = {
     queries: 
         { key: "carlo", input: never, result: CarloResponse } | 
+        { key: "get_all_users", input: never, result: Model[] } | 
         { key: "login", input: never, result: string } | 
+        { key: "sum", input: never, result: number } | 
         { key: "version", input: never, result: string },
     mutations: never,
     subscriptions: never
 };
 
 export type User = { name: string; age: number; alive: boolean }
+
+export type Model = { id: string; username: string; password_hash: string; created_timestamp: string; updated_timestamp: string }
 
 export type CarloResponse = { user: User; greeting: string }

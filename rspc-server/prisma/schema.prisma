@@ -1,29 +1,32 @@
 // Idk if I need still.
 generator client {
-  provider = "cargo prisma" // Corresponds to the cargo alias.
-  output = "../src/prisma.rs" // relative to the schema.
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL_PRISMA")
 }
 
-
 model User {
-  id       String    @id
-  username String
-  passwordHash String
+  id            String @id
+  username      String
+  password_hash String
 
-  createdTimestamp DateTime @default(now())
-  updatedTimestamp DateTime @updatedAt @default(now())
+  created_timestamp DateTime @default(now())
+  updated_timestamp DateTime @default(now()) @updatedAt
 
   sessions Session[]
+
+  @@map("user")
 }
 
 model Session {
-  id        String   @id
-  userId    String
-  expiresAt DateTime
-  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
+  id         String   @id
+  user_id    String
+  expires_at DateTime
+  user       User     @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
+  @@map("session")
 }

@@ -3,14 +3,27 @@ set dotenv-load
 default:
     just --list
 
-migrate-create *name:
-    diesel migration generate {{name}}
+# migrate-create *name:
+#     diesel migration generate {{name}}
 
-migrate-up:
-    diesel migration run --database-url $DATABASE_URL
+# migrate-up:
+#     diesel migration run --database-url $DATABASE_URL
 
-migrate-down:
-    diesel migration revert
+# migrate-down:
+#     diesel migration revert
+
+db-studio:
+    bunx prisma studio
+
+db-migrate:
+    bunx prisma migrate deploy
+
+db-migrate-dev:
+    bunx prisma migrate dev --schema ./prisma
+
+# Generates entities for Rust interfacing.
+db-generate:
+    sea-orm-cli generate entity --database-url $DATABASE_URL -o entity/src/entities --with-serde serialize --model-extra-derives 'specta::Type'
 
 # Simple OS-specific command (Just a sample)
 list:
