@@ -13,16 +13,17 @@ Projects on this repo:
 5. [ ] Tried Passwords CLI - Recreation of my [Go implementation](https://github.com/Blankeos/tried-passwords-cli).
 6. [ ] HTTP Server - Simple HTTP server to understand networking and concurrency in Rust.
 7. [ ] Actix Server - API Server with a framework called Actix (Like Go's Fiber wrapped around HTTP standard libs).
-8. [x] Rspc Server - API Server but typesafe for TypeScript (like tRPC), expect it's in Rust! Very sick.
-9. [ ] TCP Socket Chat - A console-based chat application using sockets to understand network communication.
-10. [ ] Random Quotes - A simple CLI application that fetches a random quote from the [API Ninjas Quotes](https://api-ninjas.com/api/quotes).
-11. [ ] Tic Tac Toe - A simple Tic Tac Toe game with persistence.
-12. [ ] WebSocket Chat - A console-based chat application using WebSockets to understand network communication on browser.
-13. [ ] Static Site Generator - Converts markdown to HTML.
-14. [ ] Tauri - Electron-like webview for Rust.
-15. [x] GPUI_Hello - A simple `gpui` program (Zed's gui library) for practice.
-16. [x] GPUI_Input - A simple input field with `gpui` for practice.
-17. [ ] Todo GUI Application - A simple GUI application to manage tasks.
+8. [x] Rspc Server - API Server but typesafe for TypeScript (like tRPC), expect it's in Rust! Very sick. My fave, except redirects are not gonna be typesafe.
+9. [x] Poem Server - API Server but easiest OAI integration so typesafe, Axum and Actix OAI integration is weird for me, here it's first class. Fixes my gripes with rspc, plus well maintained. But, you pretty much define redirects, streams, etc. Just standard web stuff.
+10. [ ] TCP Socket Chat - A console-based chat application using sockets to understand network communication.
+11. [ ] Random Quotes - A simple CLI application that fetches a random quote from the [API Ninjas Quotes](https://api-ninjas.com/api/quotes).
+12. [ ] Tic Tac Toe - A simple Tic Tac Toe game with persistence.
+13. [ ] WebSocket Chat - A console-based chat application using WebSockets to understand network communication on browser.
+14. [ ] Static Site Generator - Converts markdown to HTML.
+15. [ ] Tauri - Electron-like webview for Rust.
+16. [x] GPUI_Hello - A simple `gpui` program (Zed's gui library) for practice.
+17. [x] GPUI_Input - A simple input field with `gpui` for practice.
+18. [ ] Todo GUI Application - A simple GUI application to manage tasks.
 
 ### Notes
 
@@ -42,7 +43,7 @@ Projects on this repo:
 - If you want something that "installs deps" like bun install, just run any: `cargo check`, `cargo build`, `cargo run`, or `cargo clippy --all-targets`
 - `cargo install --list` to see what you installed in your path.
 - `cargo clippy --all-targets` - should be your primary feedback loop, can even do this on save.
-- `rustup component add rust-analyzer` - if rust-analyzer has issues.
+- `rustup component add rust-analyzer` - if rust-analyzer has issues (LSP not starting).
 
 #### Terminologies
 
@@ -76,7 +77,7 @@ opt-level = 3
 
 Libs that are kinda essential to know
 
-- tokio - async
+- tokio - async (usually I do `cargo add tokio --features=rt-multi-thread` for most apps so async and `#[tokio::main]` works)
 - serde - for serializing/deserializing. It's very generic so treat it like a library.
 - serde_json - specifically for JSON serialization/deserialization (not confused anymore ?)
 - clap - for making CLIs
