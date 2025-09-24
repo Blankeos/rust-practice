@@ -4,15 +4,20 @@ export type Procedures = {
     queries: 
         { key: "carlo", input: never, result: CarloResponse } | 
         { key: "get_all_users", input: never, result: Model[] } | 
-        { key: "login", input: never, result: string } | 
+        { key: "initiate_redirect", input: never, result: null } | 
+        { key: "login", input: LoginInput, result: NewUser } | 
         { key: "sum", input: never, result: number } | 
         { key: "version", input: never, result: string },
     mutations: never,
     subscriptions: never
 };
 
-export type User = { name: string; age: number; alive: boolean }
+export type NewUser = { id: string; username: string; hashed_password: string; email: string | null }
 
 export type Model = { id: string; username: string; password_hash: string; created_timestamp: string; updated_timestamp: string }
+
+export type LoginInput = { username: string; email: string; password: string }
+
+export type User = { name: string; age: number; alive: boolean }
 
 export type CarloResponse = { user: User; greeting: string }

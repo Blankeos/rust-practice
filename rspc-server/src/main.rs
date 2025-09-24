@@ -1,3 +1,4 @@
+use axum::response::IntoResponse;
 use dotenvy::dotenv;
 
 use axum::{routing::get, Json};
@@ -31,7 +32,7 @@ pub struct CarloResponse {
     greeting: String,
 }
 
-#[derive(Type, serde::Serialize)]
+#[derive(Type, serde::Deserialize, serde::Serialize)]
 pub struct LoginInput {
     username: String,
     email: String,
@@ -80,6 +81,13 @@ fn router() -> Arc<rspc::Router<MyCtx>> {
                         )
                     })?;
 
+                if users.is_empty() {
+                    return Err(rspc::Error::new(
+                        rspc::ErrorCode::NotFound,
+                        "No users were found in the database. This is a fake error for demonstration purposes.".to_string(),
+                    ));
+                }
+
                 Ok(users)
             })
         })
@@ -97,16 +105,42 @@ fn router() -> Arc<rspc::Router<MyCtx>> {
                 return CarloResponse { greeting, user };
             })
         })
+        // The `/login` endpoint is queried using a GET request.
+        // It expects 'username', 'email', and 'password' as URL query parameters.
+        //
+        // Example: GET /rspc/login?username=your_username&email=your_email&password=your_password
+        // For example, the correct way to call this would be:
+        // GET /rspc/login?input=%7B%22username%22%3A%22testuser%22%2C%22email%22%3A%22test%40example.com%22%2C%22password%22%3A%22testpass%22%7D
+        // (where the 'input' parameter value is a URL-encoded JSON object:
+        //  `{"username":"testuser","email":"test@example.com","password":"testpass"}`)
         .query("login", |t| {
-            t(|ctx, input: ()| {
+            t(|ctx, input: LoginInput | {
                 let new_user = NewUser {
                     id: "123".to_string(),
-                    username: "carlo".to_string(),
-                    hashed_password: "carlo123".to_string(),
-                    email: None,
+                    username: input.username.to_string(),
+                    hashed_password: input.password.to_string() + "hash",
+                    email: Some(input.email.to_string()),
                 };
 
-                "logging in."
+                Ok(new_user)
+            })
+        })
+        .query("initiate_redirect", |t| {
+            t(|ctx, _: ()| {
+                let redirect_url = "https://www.google.com/search?q=rspc+redirect";
+                let status_code = 302;
+
+                // axum::response::Redirect::to("https://www.rust-lang.org/").into_response();
+                // Create redirect response using axum's Redirect
+                let redirect_response = axum::response::Redirect::to(redirect_url);
+
+                // Convert to rspc::Error with redirect status
+                Err::<(), rspc::Error>(rspc::Error::new(
+                    rspc::ErrorCode::Conflict,
+                    redirect_url.to_string(),
+                ))
+
+                // Ok((redirect_url.to_string(), status_code))
             })
         })
         // .mutation("login", |t| t(|ctx, login_input: LoginInput| {}))
@@ -146,6 +180,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             get(|| async {
                 let value = std::fs::read_to_string("./bindings.ts").unwrap();
                 value
+            }),
+        )
+        .route(
+            "/redirect",
+            get(|| async {
+                axum::response::Redirect::to("https://www.rust-lang.org/").into_response()
             }),
         )
         .nest(

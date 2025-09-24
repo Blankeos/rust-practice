@@ -42,6 +42,7 @@ Projects on this repo:
 - If you want something that "installs deps" like bun install, just run any: `cargo check`, `cargo build`, `cargo run`, or `cargo clippy --all-targets`
 - `cargo install --list` to see what you installed in your path.
 - `cargo clippy --all-targets` - should be your primary feedback loop, can even do this on save.
+- `rustup component add rust-analyzer` - if rust-analyzer has issues.
 
 #### Terminologies
 
