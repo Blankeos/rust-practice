@@ -238,6 +238,51 @@ fn food_spawner(mut commands: Commands) {
         .insert(Size::square(0.8));
 }
 
+fn snake_eating(
+    mut commands: Commands,
+    mut snake_segments: ResMut<SnakeSegments>,
+    positions: Query<&Position>,
+    mut food_query: Query<(Entity, &Position), With<Food>>,
+) {
+    let head_pos = if let Some(head) = snake_segments.0.first() {
+        if let Ok(pos) = positions.get(*head) {
+            Some(*pos)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    if let Some(head_position) = head_pos {
+        for (food_entity, food_pos) in food_query.iter_mut() {
+            if *food_pos == head_position {
+                let new_segment_pos = if snake_segments.0.len() > 1 {
+                    if let Ok(pos) = positions.get(snake_segments.0[snake_segments.0.len() - 1]) {
+                        *pos
+                    } else {
+                        head_position
+                    }
+                } else {
+                    head_position
+                };
+                let new_segment = commands
+                    .spawn(Sprite {
+                        color: SNAKE_SEGMENT_COLOR,
+                        ..default()
+                    })
+                    .insert(SnakeSegment)
+                    .insert(new_segment_pos)
+                    .insert(Size::square(0.65))
+                    .id();
+                snake_segments.0.push(new_segment);
+                commands.entity(food_entity).despawn();
+                break;
+            }
+        }
+    }
+}
+
 use bevy::time::common_conditions::on_timer;
 
 fn main() {
@@ -259,7 +304,10 @@ fn main() {
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, spawn_snake)
         .add_systems(Update, snake_movement_input)
-        .add_systems(FixedUpdate, (game_tick_ticker, snake_movement))
+        .add_systems(
+            FixedUpdate,
+            (game_tick_ticker, snake_movement, snake_eating),
+        )
         .add_systems(PostUpdate, (position_translation, size_scaling))
         .run();
 }
