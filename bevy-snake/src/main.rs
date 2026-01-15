@@ -63,6 +63,23 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn((Camera2d, MyCameraMarker));
 }
 
+fn setup_score(mut commands: Commands) {
+    commands.spawn((
+        Text("Score: 0".to_string()),
+        TextFont {
+            font_size: 24.0,
+            ..default()
+        },
+        TextColor(Color::WHITE),
+        Node {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(10.0),
+            right: Val::Px(10.0),
+            ..default()
+        },
+    ));
+}
+
 #[derive(Component)]
 struct SnakeHead {
     direction: Direction,
@@ -73,6 +90,9 @@ struct SnakeSegment;
 
 #[derive(Default, Resource)]
 struct SnakeSegments(Vec<Entity>);
+
+#[derive(Default, Resource)]
+struct Score(u32);
 
 fn spawn_snake(mut commands: Commands, mut segments: ResMut<SnakeSegments>) {
     *segments = SnakeSegments(vec![
@@ -241,8 +261,10 @@ fn food_spawner(mut commands: Commands) {
 fn snake_eating(
     mut commands: Commands,
     mut snake_segments: ResMut<SnakeSegments>,
+    mut score: ResMut<Score>,
     positions: Query<&Position>,
     mut food_query: Query<(Entity, &Position), With<Food>>,
+    mut text_query: Query<&mut Text>,
 ) {
     let head_pos = if let Some(head) = snake_segments.0.first() {
         if let Ok(pos) = positions.get(*head) {
@@ -277,6 +299,10 @@ fn snake_eating(
                     .id();
                 snake_segments.0.push(new_segment);
                 commands.entity(food_entity).despawn();
+                score.0 += 1;
+                for mut text in text_query.iter_mut() {
+                    text.0 = format!("Score: {}", score.0);
+                }
                 break;
             }
         }
@@ -289,6 +315,7 @@ fn main() {
     App::new()
         .insert_resource(GameTick(Timer::from_seconds(0.08, TimerMode::Repeating)))
         .insert_resource(SnakeSegments::default())
+        .insert_resource(Score::default())
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Snake!".to_string(),
@@ -303,6 +330,7 @@ fn main() {
         )
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, spawn_snake)
+        .add_systems(Startup, setup_score)
         .add_systems(Update, snake_movement_input)
         .add_systems(
             FixedUpdate,
