@@ -171,7 +171,19 @@ fn snake_movement(
             Direction::Down => {
                 head_pos.y -= 1;
             }
-        };
+        }
+
+        // Wrap around screen edges (Go beyond, pop back at the other side behavior)
+        if head_pos.x < 0 {
+            head_pos.x = ARENA_WIDTH as i32 - 1;
+        } else if head_pos.x >= ARENA_WIDTH as i32 {
+            head_pos.x = 0;
+        }
+        if head_pos.y < 0 {
+            head_pos.y = ARENA_HEIGHT as i32 - 1;
+        } else if head_pos.y >= ARENA_HEIGHT as i32 {
+            head_pos.y = 0;
+        }
 
         // Update body segments
         for (segment, pos) in snake_segments
