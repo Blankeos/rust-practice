@@ -44,6 +44,7 @@ Projects on this repo:
 - `cargo install --list` to see what you installed in your path.
 - `cargo clippy --all-targets` - should be your primary feedback loop, can even do this on save.
 - `rustup component add rust-analyzer` - if rust-analyzer has issues (LSP not starting).
+- `cargo clean -p <pkg>` - wipes cached fingerprints for one package, forcing a full recompile next build (fixes. "edits not picked up" bugs, sometimes happens after I do `cargo publish` and did `cargo r` again but it's still outdated)
 
 #### Terminologies
 
